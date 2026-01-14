@@ -37,8 +37,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         >
           <Authenticated>
             <UserButton />
-            {children}
           </Authenticated>
+          {children}
           <Unauthenticated>
             <UnauthenticatedView />
           </Unauthenticated>

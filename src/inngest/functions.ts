@@ -2,9 +2,10 @@ import { inngest } from "./client";
 
 export const helloWorld = inngest.createFunction(
   { id: "hello-world" },
-  { event: "test/hello.world" },
+  { event: "demo/error" },
   async ({ event, step }) => {
-    await step.sleep("wait-a-moment", "1s");
-    return { message: `Hello ${event.data.email}!` };
+    await step.run("fail", async () => {
+      throw new Error("Inngest error: Something went wrong");
+    });
   }
 );
