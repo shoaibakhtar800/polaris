@@ -37,6 +37,46 @@ export const useCreateProjects = () => {
           ...existingProjects,
         ]);
       }
-    }
+    },
+  );
+};
+
+export const useProjectById = (projectId: Id<"projects">) => {
+  return useQuery(api.projects.getById, { id: projectId });
+};
+
+export const useRenameProject = (projectId: Id<"projects">) => {
+  return useMutation(api.projects.rename).withOptimisticUpdate(
+    (localStore, args) => {
+      const existingProject = localStore.getQuery(api.projects.getById, {
+        id: projectId,
+      });
+
+      if (existingProject !== undefined && existingProject !== null) {
+        localStore.setQuery(
+          api.projects.getById,
+          { id: projectId },
+          {
+            ...existingProject,
+            name: args.name,
+            updatedAt: Date.now(),
+          },
+        );
+      }
+
+      const existingProjects = localStore.getQuery(api.projects.get);
+
+      if (existingProjects !== undefined && existingProjects !== null) {
+        localStore.setQuery(
+          api.projects.get,
+          {},
+          existingProjects.map((project) =>
+            project._id === projectId
+              ? { ...project, name: args.name, updatedAt: Date.now() }
+              : project,
+          ),
+        );
+      }
+    },
   );
 };
