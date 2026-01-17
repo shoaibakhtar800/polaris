@@ -23,14 +23,15 @@ export const useCreateProjects = () => {
       const existingProjects = localStore.getQuery(api.projects.get);
 
       if (existingProjects !== undefined) {
-        const now = Date.now();
-        const newProject = {
+        const createNewProject = () => ({
           _id: crypto.randomUUID() as Id<"projects">,
-          _creationTime: now,
+          _creationTime: Date.now(),
           name: args.name,
           ownerId: userId,
-          updatedAt: now,
-        };
+          updatedAt: Date.now(),
+        });
+
+        const newProject = createNewProject();
 
         localStore.setQuery(api.projects.get, {}, [
           newProject,
@@ -48,6 +49,8 @@ export const useProjectById = (projectId: Id<"projects">) => {
 export const useRenameProject = (projectId: Id<"projects">) => {
   return useMutation(api.projects.rename).withOptimisticUpdate(
     (localStore, args) => {
+      const getCurrentTime = () => Date.now();
+
       const existingProject = localStore.getQuery(api.projects.getById, {
         id: projectId,
       });
@@ -59,7 +62,7 @@ export const useRenameProject = (projectId: Id<"projects">) => {
           {
             ...existingProject,
             name: args.name,
-            updatedAt: Date.now(),
+            updatedAt: getCurrentTime(),
           },
         );
       }
@@ -72,7 +75,7 @@ export const useRenameProject = (projectId: Id<"projects">) => {
           {},
           existingProjects.map((project) =>
             project._id === projectId
-              ? { ...project, name: args.name, updatedAt: Date.now() }
+              ? { ...project, name: args.name, updatedAt: getCurrentTime() }
               : project,
           ),
         );
