@@ -10,8 +10,14 @@ import { useState } from "react";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { useProjectById } from "../../hooks/use-projects";
 import { Button } from "@/components/ui/button";
-import { useCreateFile, useCreateFolder } from "../../hooks/use-files";
+import {
+  useCreateFile,
+  useCreateFolder,
+  useFolderContents,
+} from "../../hooks/use-files";
 import { CreateInput } from "./create-input";
+import { LoadingRow } from "./loading-row";
+import { Tree } from "./tree";
 
 export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,6 +25,7 @@ export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
   const [creating, setCreating] = useState<"file" | "folder" | null>(null);
 
   const project = useProjectById(projectId);
+  const rootFiles = useFolderContents({ projectId, enabled: isOpen });
 
   const createFile = useCreateFile();
   const createFolder = useCreateFolder();
@@ -43,7 +50,7 @@ export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
         >
           <ChevronRightIcon
             className={cn(
-              "size-4 shrink-0 text-muted-foreground",
+              "size-5 shrink-0 text-muted-foreground",
               isOpen && "rotate-90",
             )}
           />
@@ -61,7 +68,7 @@ export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
                 setCreating("file");
               }}
             >
-              <FilePlusCornerIcon className="size-4" />
+              <FilePlusCornerIcon className="size-5" />
             </Button>
             <Button
               variant="highlight"
@@ -73,7 +80,7 @@ export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
                 setCreating("folder");
               }}
             >
-              <FolderPlusIcon className="size-4" />
+              <FolderPlusIcon className="size-5" />
             </Button>
             <Button
               variant="highlight"
@@ -84,12 +91,13 @@ export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
                 setCollapseKey((prev) => prev + 1);
               }}
             >
-              <CopyMinusIcon className="size-4" />
+              <CopyMinusIcon className="size-5" />
             </Button>
           </div>
         </div>
         {isOpen && (
           <>
+            {rootFiles === undefined && <LoadingRow level={0} />}
             {creating && (
               <CreateInput
                 type={creating}
@@ -98,6 +106,14 @@ export const FileExplorer = ({ projectId }: { projectId: Id<"projects"> }) => {
                 level={0}
               />
             )}
+            {rootFiles?.map((file) => (
+              <Tree
+                key={`${file._id}-${collapseKey}`}
+                item={file}
+                level={0}
+                projectId={projectId}
+              />
+            ))}
           </>
         )}
       </ScrollArea>

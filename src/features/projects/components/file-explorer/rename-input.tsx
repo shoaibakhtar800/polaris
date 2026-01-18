@@ -2,28 +2,28 @@ import { FileIcon, FolderIcon } from "@react-symbols/icons/utils";
 import { ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 import { getItemPadding } from "./constants";
+import { cn } from "@/lib/utils";
 
-export const CreateInput = ({
+export const RenameInput = ({
   type,
+  defaultValue,
+  isOpen,
   level,
   onSubmit,
   onCancel,
 }: {
   type: "file" | "folder";
   level: number;
+  defaultValue: string;
+  isOpen?: boolean;
   onSubmit: (name: string) => void;
   onCancel: () => void;
 }) => {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(defaultValue);
 
   const handleSubmit = () => {
-    const trimmedValue = value.trim();
-
-    if (trimmedValue) {
-      onSubmit(trimmedValue);
-    } else {
-      onCancel();
-    }
+    const trimmedValue = value.trim() || defaultValue;
+    onSubmit(trimmedValue);
   };
 
   return (
@@ -33,7 +33,12 @@ export const CreateInput = ({
     >
       <div className="flex items-center gap-0.5">
         {type === "folder" && (
-          <ChevronRightIcon className="size-5 shrink-0 text-muted-foreground" />
+          <ChevronRightIcon
+            className={cn(
+              "size-5 shrink-0 text-muted-foreground",
+              isOpen && "rotate-90",
+            )}
+          />
         )}
         {type === "file" && (
           <FileIcon fileName={value} autoAssign className="size-5" />
@@ -52,6 +57,20 @@ export const CreateInput = ({
             handleSubmit();
           } else if (e.key === "Escape") {
             onCancel();
+          }
+        }}
+        onFocus={(e) => {
+          if (type === "folder") {
+            e.currentTarget.select();
+          } else {
+            const value = e.currentTarget.value;
+            const lastDotIndex = value.lastIndexOf(".");
+
+            if (lastDotIndex > 0) {
+              e.currentTarget.setSelectionRange(0, lastDotIndex);
+            } else {
+              e.currentTarget.select();
+            }
           }
         }}
         onBlur={handleSubmit}
