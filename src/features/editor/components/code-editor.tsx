@@ -8,6 +8,9 @@ import { customSetup } from "../extensions/custom-setup";
 import { getLanguageExtension } from "../extensions/language-extension";
 import { minimap } from "../extensions/minimap";
 import { customTheme } from "../extensions/theme";
+import { suggestion } from "../extensions/suggestion";
+import { quickEdit } from "../extensions/quick-edit";
+import { selectionTooltip } from "../extensions/selection-tooltip";
 
 interface Props {
   filename: string;
@@ -36,12 +39,15 @@ export const CodeEditor = ({
       doc: initialValue,
       extensions: [
         oneDark,
-        keymap.of([indentWithTab]),
         customTheme,
         customSetup,
         languageExtension,
         minimap(),
         indentationMarkers(),
+        suggestion(filename),
+        quickEdit(filename),
+        selectionTooltip(),
+        keymap.of([indentWithTab]),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChange(update.state.doc.toString());
