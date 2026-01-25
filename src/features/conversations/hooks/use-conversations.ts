@@ -2,12 +2,12 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
 
-export const useConversationById = (id: Id<"conversations">) => {
+export const useConversationById = (id: Id<"conversations"> | null) => {
   return useQuery(api.conversations.getById, id ? { id } : "skip");
 };
 
 export const useMessagesByConversationId = (
-  conversationId: Id<"conversations">,
+  conversationId: Id<"conversations"> | null,
 ) => {
   return useQuery(
     api.conversations.getMessages,
