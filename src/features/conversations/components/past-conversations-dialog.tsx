@@ -1,0 +1,66 @@
+"use client";
+
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { formatDistanceToNow } from "date-fns";
+import { useConversationsByProjectId } from "../hooks/use-conversations";
+import { Id } from "../../../../convex/_generated/dataModel";
+
+interface PastConversationsDialogProps {
+  projectId: Id<"projects">;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (conversationId: Id<"conversations">) => void;
+}
+
+export const PastConversationsDialog = ({
+  projectId,
+  open,
+  onOpenChange,
+  onSelect,
+}: PastConversationsDialogProps) => {
+  const conversations = useConversationsByProjectId(projectId);
+
+  const handleSelect = (conversationId: Id<"conversations">) => {
+    onSelect(conversationId);
+    onOpenChange(false);
+  };
+
+  return (
+    <CommandDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Past Conversations"
+      description="Select a past conversation to continue"
+    >
+      <CommandInput placeholder="Search past conversations..." />
+      <CommandList>
+        <CommandEmpty>No past conversations found</CommandEmpty>
+        <CommandGroup heading="Conversations">
+          {conversations?.map((conversation) => (
+            <CommandItem
+              key={conversation._id}
+              value={`${conversation.title}-${conversation._id}`}
+              onSelect={() => handleSelect(conversation._id)}
+            >
+              <div className="flex flex-col gap-2">
+                <span>{conversation.title}</span>
+                <span className="text-xs text-muted-foreground">
+                  {formatDistanceToNow(conversation._creationTime, {
+                    addSuffix: true,
+                  })}
+                </span>
+              </div>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </CommandList>
+    </CommandDialog>
+  );
+};
