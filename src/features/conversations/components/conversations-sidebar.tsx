@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { DEFAULT_CONVERSATION_TITLE } from "../../../../convex/constants";
 import {
   useConversationById,
   useConversationsByProjectId,
@@ -33,6 +32,7 @@ import {
 } from "@/components/ai-elements/message";
 import ky from "ky";
 import { PastConversationsDialog } from "./past-conversations-dialog";
+import { DEFAULT_CONVERSATION_TITLE } from "../constants/constants";
 
 export const ConversationsSidebar = ({
   projectId,
