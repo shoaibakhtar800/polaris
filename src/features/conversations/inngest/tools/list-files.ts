@@ -4,60 +4,44 @@ import { z } from "zod";
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 
-interface ReadFilesToolInput {
+interface ListFilesToolOptions {
   internalKey: string;
+  projectId: Id<"projects">;
 }
 
-const paramsSchema = z.object({
-  fileIds: z
-    .array(z.string().min(1, "File Id is required"))
-    .min(1, "At least one file id is required"),
-});
-
-export const createReadFilesTool = ({ internalKey }: ReadFilesToolInput) => {
+export const createListFilesTool = ({ internalKey, projectId }: ListFilesToolOptions) => {
   return createTool({
-    name: "read-files",
+    name: "listFiles",
     description:
-      "Read the content of files from the project, Returns file contents.",
-    parameters: z.object({
-      fileIds: z.array(z.string()).describe("Array of file Ids to read"),
-    }),
-    handler: async (params, { step: toolStep }) => {
-      const parsed = paramsSchema.safeParse(params);
-
-      if (!parsed.success) {
-        return `Error: ${parsed.error.issues[0].message}`;
-      }
-
-      const { fileIds } = parsed.data;
-
+      "List all files and folders in the project. Returns names, IDs, types, and parentId for each item. Items with parentId: null are at root level. Use the parentId to understand the folder structure - items with the same parentId are in the same folder.",
+    parameters: z.object({}),
+    handler: async (_, { step: toolStep }) => {
       try {
-        return await toolStep?.run("read-files", async () => {
-          const results: { id: string; name: string; content: string }[] = [];
+        return await toolStep?.run("list-files", async () => {
+          const files = await convex.query(api.system.getProjectFiles, {
+            internalKey,
+            projectId,
+          });
 
-          for (const fileId of fileIds) {
-            const file = await convex.query(api.system.getFileById, {
-              internalKey,
-              fileId: fileId as Id<"files">,
-            });
-
-            if (file && file.content) {
-              results.push({
-                id: fileId,
-                name: file.name,
-                content: file.content,
-              });
+          const sorted = files.sort((a, b) => {
+            if (a.type !== b.type) {
+              return a.type === "folder" ? -1 : 1;
             }
-          }
 
-          if (results.length === 0) {
-            return "Error: No files found with provided Ids. Use lastFiles to get valid file Ids.";
-          }
+            return a.name.localeCompare(b.name);
+          });
 
-          return JSON.stringify(results);
+          const fileList = sorted.map((f) => ({
+            id: f._id,
+            name: f.name,
+            type: f.type,
+            parentId: f.parentId ?? null,
+          }));
+
+          return JSON.stringify(fileList);
         });
       } catch (error) {
-        return `Error reading files: ${error instanceof Error ? error.message : "Unknown error"}`;
+        return `Error listing files: ${error instanceof Error ? error.message : "Unknown error"}`;
       }
     },
   });

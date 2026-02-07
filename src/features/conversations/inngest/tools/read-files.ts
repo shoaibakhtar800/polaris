@@ -16,7 +16,7 @@ const paramsSchema = z.object({
 
 export const createReadFilesTool = ({ internalKey }: ReadFilesToolInput) => {
   return createTool({
-    name: "read-files",
+    name: "readFiles",
     description:
       "Read the content of files from the project, Returns file contents.",
     parameters: z.object({

@@ -1,4 +1,4 @@
-import { createAgent, gemini } from "@inngest/agent-kit";
+import { createAgent, createNetwork, gemini } from "@inngest/agent-kit";
 
 import { inngest } from "@/inngest/client";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -10,8 +10,11 @@ import {
   TITLE_GENERATOR_SYSTEM_PROMPT,
 } from "./constants";
 import { DEFAULT_CONVERSATION_TITLE } from "../constants/constants";
-import { text } from "stream/consumers";
 import { createReadFilesTool } from "./tools/read-files";
+import { createListFilesTool } from "./tools/list-files";
+import { createUpdateFileTool } from "./tools/update-file";
+import { createCreateFilesTool } from "./tools/create-files";
+import { createCreateFolderTool } from "./tools/create-folder";
 
 interface MessageEvent {
   messageId: Id<"messages">;
@@ -141,18 +144,75 @@ export const processMessage = inngest.createFunction(
         model: "gemini-2.5-flash",
       }),
       tools: [
+        createListFilesTool({
+          internalKey,
+          projectId,
+        }),
         createReadFilesTool({
           internalKey,
+        }),
+        createUpdateFileTool({
+          internalKey,
+        }),
+        createCreateFilesTool({
+          internalKey,
+          projectId,
+        }),
+        createCreateFolderTool({
+          internalKey,
+          projectId,
         }),
       ],
     });
 
+    const network = createNetwork({
+      name: "polaris-network",
+      agents: [codingAgent],
+      maxIter: 20,
+      router: ({ network }) => {
+        const lastResult = network.state.results.at(-1);
+
+        const hasTextResponse = lastResult?.output.some(
+          (m) => m.type === "text" && m.role === "assistant",
+        );
+
+        const hasToolCalls = lastResult?.output.some(
+          (m) => m.type === "tool_call",
+        );
+
+        if (hasTextResponse && !hasToolCalls) {
+          return undefined;
+        }
+
+        return codingAgent;
+      },
+    });
+
+    const result = await network.run(message);
+
+    const lastResult = result.state.results.at(-1);
+    const textMessage = lastResult?.output.find(
+      (m) => m.type === "text" && m.role === "assistant",
+    );
+
+    let assistantMessage =
+      "I processed your request. Let me know if you need anything else.";
+
+    if (textMessage?.type === "text") {
+      assistantMessage =
+        typeof textMessage.content === "string"
+          ? textMessage.content
+          : textMessage.content.map((c) => c.text).join("");
+    }
+
     await step.run("update-assistant-message", async () => {
       await convex.mutation(api.system.updateMessageContent, {
         messageId,
-        content: "AI processed message",
+        content: assistantMessage,
         internalKey,
       });
     });
+
+    return { success: true, messageId, conversationId };
   },
 );
