@@ -15,6 +15,9 @@ import { createListFilesTool } from "./tools/list-files";
 import { createUpdateFileTool } from "./tools/update-file";
 import { createCreateFilesTool } from "./tools/create-files";
 import { createCreateFolderTool } from "./tools/create-folder";
+import { createRenameFileTool } from "./tools/rename-file";
+import { createDeleteFilesTool } from "./tools/delete-files";
+import { createScrapeUrlsTool } from "./tools/scrape-urls";
 
 interface MessageEvent {
   messageId: Id<"messages">;
@@ -162,6 +165,13 @@ export const processMessage = inngest.createFunction(
           internalKey,
           projectId,
         }),
+        createRenameFileTool({
+          internalKey,
+        }),
+        createDeleteFilesTool({
+          internalKey,
+        }),
+        createScrapeUrlsTool(),
       ],
     });
 
