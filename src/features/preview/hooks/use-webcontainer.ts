@@ -52,6 +52,7 @@ export function useWebContainer({
 
   const containerRef = useRef<WebContainer | null>(null);
   const hasStartedRef = useRef(false);
+  const processInputRef = useRef<WritableStreamDefaultWriter | null>(null);
 
   const files = useFiles(projectId);
 
@@ -92,6 +93,7 @@ export function useWebContainer({
           installBin,
           installArgs,
         );
+        processInputRef.current = installProcess.input.getWriter();
         installProcess.output.pipeTo(
           new WritableStream({
             write(chunk: string) {
@@ -101,6 +103,9 @@ export function useWebContainer({
         );
 
         const installExitCode = await installProcess.exit;
+        processInputRef.current?.releaseLock();
+        processInputRef.current = null;
+
         if (installExitCode !== 0) {
           throw new Error(
             `Installation failed with ${installCmd} exit code ${installExitCode}`,
@@ -112,6 +117,7 @@ export function useWebContainer({
         appendOutput(`\n$ ${devCmd}\n`);
 
         const devProcess = await webcontainer.spawn(devBin, devArgs);
+        processInputRef.current = devProcess.input.getWriter();
         devProcess.output.pipeTo(
           new WritableStream({
             write(chunk: string) {
@@ -171,11 +177,16 @@ export function useWebContainer({
     setRestartKey((prev) => prev + 1);
   }, []);
 
+  const writeToTerminal = useCallback((data: string) => {
+    processInputRef.current?.write(data);
+  }, []);
+
   return {
     status,
     previewUrl,
     error,
     terminalOutput,
     restart,
+    writeToTerminal,
   };
 }

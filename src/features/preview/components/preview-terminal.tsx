@@ -8,20 +8,30 @@ import "@xterm/xterm/css/xterm.css";
 
 interface PreviewTerminalProps {
   output: string;
+  onInput?: (data: string) => void;
 }
 
-export default function PreviewTerminal({ output }: PreviewTerminalProps) {
+export default function PreviewTerminal({
+  output,
+  onInput,
+}: PreviewTerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const lastLengthRef = useRef(0);
+  const onInputRef = useRef(onInput);
+
+  useEffect(() => {
+    onInputRef.current = onInput;
+  }, [onInput]);
 
   useEffect(() => {
     if (!containerRef.current || terminalRef.current) return;
 
     const terminal = new Terminal({
       convertEol: true,
-      disableStdin: true,
+      disableStdin: false,
+      cursorBlink: true,
       fontSize: 12,
       fontFamily: "monospace",
       theme: {
@@ -39,6 +49,10 @@ export default function PreviewTerminal({ output }: PreviewTerminalProps) {
     terminalRef.current = terminal;
     fitAddonRef.current = fitAddon;
 
+    const onDataDisposable = terminal.onData((data) => {
+      onInputRef.current?.(data);
+    });
+
     if (output) {
       terminal.write(output);
       lastLengthRef.current = output.length;
@@ -50,6 +64,7 @@ export default function PreviewTerminal({ output }: PreviewTerminalProps) {
     resizeObserver.observe(containerRef.current);
 
     return () => {
+      onDataDisposable.dispose();
       resizeObserver.disconnect();
       terminal.dispose();
       terminalRef.current = null;

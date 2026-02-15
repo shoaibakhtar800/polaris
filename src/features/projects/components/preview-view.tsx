@@ -19,12 +19,18 @@ export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
   const project = useProjectById(projectId);
   const [showTerminal, setShowTerminal] = useState(true);
 
-  const { status, previewUrl, error, restart, terminalOutput } =
-    useWebContainer({
-      projectId,
-      enabled: showTerminal,
-      settings: project?.settings,
-    });
+  const {
+    status,
+    previewUrl,
+    error,
+    restart,
+    terminalOutput,
+    writeToTerminal,
+  } = useWebContainer({
+    projectId,
+    enabled: showTerminal,
+    settings: project?.settings,
+  });
 
   const isLoading = status === "booting" || status === "installing";
 
@@ -112,11 +118,14 @@ export const PreviewView = ({ projectId }: { projectId: Id<"projects"> }) => {
             <Allotment.Pane minSize={100} maxSize={500} preferredSize={200}>
               <div className="h-full flex flex-col bg-background border-t">
                 <div className="h-7 flex items-center px-3 text-xs gap-1.5 text-muted-foreground border-b border-border/50 shrink-0">
-                  <TerminalSquareIcon className="size-3" />
+                  <TerminalSquareIcon className="size-4" />
                   <p className="text-sm font-medium">Terminal</p>
                 </div>
 
-                <PreviewTerminal output={terminalOutput} />
+                <PreviewTerminal
+                  output={terminalOutput}
+                  onInput={writeToTerminal}
+                />
               </div>
             </Allotment.Pane>
           )}
