@@ -2,8 +2,8 @@ import { convex } from "@/lib/convex-client";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import z from "zod";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "../../../../../../convex/_generated/api";
+import { Id } from "../../../../../../convex/_generated/dataModel";
 
 const requestSchema = z.object({
   projectId: z.string(),

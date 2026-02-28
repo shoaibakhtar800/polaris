@@ -300,7 +300,9 @@ export const createFolder = mutation({
 
     const files = await ctx.db
       .query("files")
-      .withIndex("by_project_parent", (q) => q.eq("projectId", args.projectId))
+      .withIndex("by_project_parent", (q) =>
+        q.eq("projectId", args.projectId).eq("parentId", args.parentId),
+      )
       .collect();
 
     const existing = files.find(
@@ -314,9 +316,8 @@ export const createFolder = mutation({
     const fileId = await ctx.db.insert("files", {
       projectId: args.projectId,
       name: args.name,
-      content: "",
-      parentId: args.parentId,
       type: "folder",
+      parentId: args.parentId,
       updatedAt: Date.now(),
     });
 

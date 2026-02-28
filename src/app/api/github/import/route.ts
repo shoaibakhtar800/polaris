@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: "Github is not connected, please connect it first",
+        error: "Github not connected, Please connect it first",
       },
       { status: 400 },
     );
