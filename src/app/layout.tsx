@@ -30,7 +30,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${plexMono.variable} antialiased`}>
+      <body
+        className={`${inter.variable} ${plexMono.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <Providers>
           {children}
           <Toaster position="bottom-right" />

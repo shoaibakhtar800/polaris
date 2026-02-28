@@ -6,6 +6,7 @@ import { TopNavigation } from "./top-navigation";
 import Image from "next/image";
 import { CodeEditor } from "./code-editor";
 import { useEffect, useRef } from "react";
+import { AlertTriangleIcon } from "lucide-react";
 
 const DEBOUNCE_TIME = 1500;
 
@@ -62,13 +63,13 @@ export const EditorView = ({ projectId }: { projectId: Id<"projects"> }) => {
         )}
         {isActiveFileBinary && (
           <div className="size-full flex items-center justify-center">
-            <Image
-              src="/logo-alt.svg"
-              alt="Polaris"
-              width={100}
-              height={100}
-              className="opacity-25"
-            />
+            <div className="flex flex-col items-center gap-2.5 max-w-md text-center">
+              <AlertTriangleIcon className="size-10 text-yellow-500" />
+              <p className="text-sm text-muted-foreground font-medium">
+                The file is not displayed in the text editor because it is
+                either a binary file or it is too large.
+              </p>
+            </div>
           </div>
         )}
       </div>
