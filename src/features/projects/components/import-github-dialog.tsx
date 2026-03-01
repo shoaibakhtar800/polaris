@@ -73,6 +73,15 @@ export const ImportGithubDialog = ({
             onOpenChange(false);
             return;
           }
+
+          toast.error(body.error, {
+            action: {
+              label: "Upgrade",
+              onClick: () => openUserProfile(),
+            },
+          });
+          onOpenChange(false);
+          return;
         }
 
         toast.error("Failed to import project");

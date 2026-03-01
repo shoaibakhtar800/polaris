@@ -101,6 +101,15 @@ export const ExportPopover = ({ projectId }: ExportPopoverProps) => {
             setOpen(false);
             return;
           }
+
+          toast.error(body.error, {
+            action: {
+              label: "Upgrade",
+              onClick: () => openUserProfile(),
+            },
+          });
+          setOpen(false);
+          return;
         }
 
         toast.error("Failed to import project");
