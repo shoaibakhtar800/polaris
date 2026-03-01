@@ -119,7 +119,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground select-none;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -157,8 +157,4 @@
 
 ::-webkit-scrollbar-thumb {
   @apply rounded-full bg-border border-[1px] border-transparent border-solid bg-clip-padding;
-}
-
-.close-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
 }
