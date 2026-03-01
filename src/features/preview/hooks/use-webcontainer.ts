@@ -55,6 +55,7 @@ export const useWebContainer = ({
 
   const containerRef = useRef<WebContainer | null>(null);
   const hasStartedRef = useRef(false);
+  const stdinWriterRef = useRef<WritableStreamDefaultWriter | null>(null);
 
   // Fetch files from Convex (auto-updates on changes)
   const files = useFiles(projectId);
@@ -120,6 +121,10 @@ export const useWebContainer = ({
             },
           }),
         );
+
+        // Capture stdin writer for interactive terminal input
+        const writer = devProcess.input.getWriter();
+        stdinWriterRef.current = writer;
       } catch (error) {
         setError(error instanceof Error ? error.message : "Unknown error");
         setStatus("error");
@@ -160,8 +165,18 @@ export const useWebContainer = ({
     }
   }, [enabled]);
 
+  // Write user input to the dev process's stdin
+  const writeToTerminal = useCallback((data: string) => {
+    const writer = stdinWriterRef.current;
+    if (writer) {
+      const encoder = new TextEncoder();
+      writer.write(encoder.encode(data));
+    }
+  }, []);
+
   // Restart the entire WebContainer process
   const restart = useCallback(() => {
+    stdinWriterRef.current = null;
     teardownWebContainer();
     containerRef.current = null;
     hasStartedRef.current = false;
@@ -177,5 +192,6 @@ export const useWebContainer = ({
     error,
     restart,
     terminalOutput,
+    writeToTerminal,
   };
 };
